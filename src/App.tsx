@@ -21,7 +21,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 
 // Initialize Gemini
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' });
+const DEMO_KEY_URL = 'https://api.maintainease.co/api/demo-key';
 
 const SYSTEM_INSTRUCTION = `
 # ROLE & IDENTITY
@@ -212,6 +212,32 @@ export default function App() {
   const [chat, setChat] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const getDemoKey = async (): Promise<string> => {
+    const response = await fetch(DEMO_KEY_URL, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch demo key (HTTP ${response.status})`);
+    }
+
+    const json = (await response.json()) as {
+      data?: { key?: string };
+      code?: number;
+      message?: string;
+    };
+
+    const key = json?.data?.key;
+    if (!key) {
+      throw new Error('Demo key response missing data.key');
+    }
+
+    return key;
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -222,22 +248,23 @@ export default function App() {
 
   useEffect(() => {
     const initChat = async () => {
-      const newChat = ai.chats.create({
-        model: "gemini-2.5-flash",
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-        },
-      });
-      setChat(newChat);
-
-      // Send initial greeting
       setIsLoading(true);
       try {
+        const apiKey = await getDemoKey();
+        const ai = new GoogleGenAI({ apiKey });
+        const newChat = ai.chats.create({
+          model: "gemini-2.5-flash",
+          config: {
+            systemInstruction: SYSTEM_INSTRUCTION,
+          },
+        });
+        setChat(newChat);
+
         const response: GenerateContentResponse = await newChat.sendMessage({ message: "START_CONVERSATION" });
         setMessages([{ role: 'model', content: response.text || '' }]);
       } catch (error) {
         console.error("Error starting chat:", error);
-        setMessages([{ role: 'model', content: "Hi there! 👋 I'm FixBot, your maintenance assistant. I'm here to get your service request placed quickly. What issue are you experiencing at your property today?" }]);
+        setMessages([{ role: 'model', content: "Sorry — FixBot couldn't start right now. Please refresh and try again." }]);
       } finally {
         setIsLoading(false);
       }
