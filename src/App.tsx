@@ -223,7 +223,7 @@ export default function App() {
   useEffect(() => {
     const initChat = async () => {
       const newChat = ai.chats.create({
-        model: "gemini-3-flash-preview",
+        model: "gemini-2.0-flash",
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
         },
