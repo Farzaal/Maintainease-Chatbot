@@ -21,7 +21,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 
 // Initialize Gemini
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 const SYSTEM_INSTRUCTION = `
 # ROLE & IDENTITY
@@ -39,7 +39,7 @@ maintenance service requests.
 Guide every customer through submitting a complete maintenance request by collecting 
 the following required information:
 
-1. **Property Address** – Full address of the property needing service
+1. **Property Address** – The address of the property needing service. **Note:** Just the street address is sufficient; city, state, and zip code are optional. Do not push the user for these details if they provide a clear street address.
 2. **Service Type** – Category of the issue (e.g., Plumbing, HVAC, Electrical, 
    Carpentry, Painting, Appliance Repair, General Maintenance, or Other)
 3. **Job Description** – A brief description of the problem or work needed
